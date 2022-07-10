@@ -1,4 +1,4 @@
-
+import os
 import re 
 import json 
 from io import StringIO
@@ -12,9 +12,13 @@ class JplaceParser():
     https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0031009
     """
     def __init__(self, path_to_jplace: str) -> None:
-        with open(path_to_jplace, 'r') as JSON:
-            jplace = json.load(JSON)
-        self.jplace = jplace
+        self._path_to_jplace = path_to_jplace
+        self.jplace = self.getJSONobject()
+        self._tree_obj = next(Phylo.parse(StringIO(self.newickfyTree(self.jplace['tree'])), 'newick'))
+
+    def getJSONobject(self) -> dict:
+        with open(self._path_to_jplace, 'r') as JSON:
+            return json.load(JSON)
     
     @property
     def meta(self):
@@ -29,11 +33,17 @@ class JplaceParser():
         Print data fields
         """
         return self.jplace['fields']
-
+    
     @property
-    def tree(self, newick=False):
+    def placements(self):
         """
-        Return tree in original or newick format
+        Return placement objects
+        """
+        return self.jplace['placements']
+
+    def getTreeStr(self, newick=False) -> str:
+        """
+        Return tree string in original or newick format
         Original format contains branch labels
         in curly brackets. Newick format removes
         these labels.
@@ -43,20 +53,20 @@ class JplaceParser():
         else:
             return self.jplace['tree']
     
-    @property
-    def placements(self):
-        """
-        Return placement objects
-        """
-        return self.jplace['placements']
-    
     @staticmethod
     def newickfyTree(tree_str: str) -> str:
         """
         Remove branch IDs from jplace tree string
         """
         subs_tree = re.sub("\{(\d+)\}", '', tree_str)
-        return next(Phylo.parse(StringIO(subs_tree), 'newick'))
+        return subs_tree
+        # return next(Phylo.parse(StringIO(subs_tree), 'newick'))
+
+    def getReferenceSequences(self) -> list:
+        """
+        Get list of reference sequences in the placement tree
+        """
+        return [c.name for c in self._tree_obj.get_terminals()]
     
     def buildBranchDict(self) -> dict:
         """
@@ -67,8 +77,7 @@ class JplaceParser():
             return int(re.search("\{(\d+)\}", s).group(1))
         
         original_tree = self.jplace['tree']
-        tree = self.newickfyTree(original_tree)
-        leaves = tree.get_terminals()
+        leaves = self._tree_obj.get_terminals()
 
         branches = {
             get_id(original_tree[original_tree.find(leaf.name):]): leaf.name
@@ -105,15 +114,94 @@ class JplaceParser():
         ]
         return best_placements
 
-    def labelPlacedQueries(self):
+    def computeTreeDiameter(self) -> float:
         """
-        Assign reference label to best query placements
+        Find maximum (pairwise) distance between two tips
+        (leaves) in the tree
         """
-        ref_dict = self.buildBranchDict()
-        best_placements = self.selectBestPlacements()
-        labeled_placements = {
-            place_object['n'][0]: ref_dict[place_object['p']['edge_num']]
-            for place_object in best_placements
-            if place_object['p']['edge_num'] in ref_dict.keys()
-        }
-        return labeled_placements
+        root = self._tree_obj.root
+        max_distance = 0.0
+        tips = self._tree_obj.get_terminals()
+        for tip in tips:
+            self._tree_obj.root_with_outgroup(tip)
+            new_max = max(self._tree_obj.depths().values())
+            if new_max > max_distance:
+                max_distance = new_max
+        self._tree_obj.root_with_outgroup(root)
+        return max_distance
+
+    def filterPlacementsByMaxPendantToTreeDiameterRatio(self, max_pendant_ratio: float,
+                                                        outfile: str = None) -> None:
+        """
+        Filter placements by maximum pendant length
+        """
+        if outfile is None:
+            base, ext = os.path.splitext(self._path_to_jplace)
+            outfile = f'{base}_max_pendant_diameter_ratio_{max_pendant_ratio}{ext}'
+        tree_diameter = self.computeTreeDiameter()
+        print(f'Filtering placements for tree diameter: {tree_diameter}')
+        jplace = self.getJSONobject()
+
+        filtered_placement_objs= []
+        for placement_object in jplace['placements']:
+            filtered_placements = []
+            for placement in placement_object['p']:
+                edge_num, likelihood, lwr, distal_length, pendant_length = placement
+                if pendant_length / tree_diameter <= max_pendant_ratio:
+                    filtered_placements.append(placement)
+            if filtered_placements:
+                placement_object['p'] = filtered_placements
+                filtered_placement_objs.append(placement_object)
+        jplace['placements'] = filtered_placement_objs
+        
+        with open(outfile, 'w') as ofile:
+            json.dump(jplace, ofile, indent=2)
+
+    def filterPlacementsByMaxPendantLength(self, max_pendant_length: float, outfile: str = None) -> None:
+        """
+        Filter placements by maximum pendant length
+        """
+        if outfile is None:
+            base, ext = os.path.splitext(self._path_to_jplace)
+            outfile = f'{base}_max_pendant_{max_pendant_length}{ext}'
+        jplace = self.getJSONobject()
+
+        filtered_placement_objs= []
+        for placement_object in jplace['placements']:
+            filtered_placements = []
+            for placement in placement_object['p']:
+                edge_num, likelihood, lwr, distal_length, pendant_length = placement
+                if pendant_length <= max_pendant_length:
+                    filtered_placements.append(placement)
+            if filtered_placements:
+                placement_object['p'] = filtered_placements
+                filtered_placement_objs.append(placement_object)
+        jplace['placements'] = filtered_placement_objs
+        
+        with open(outfile, 'w') as ofile:
+            json.dump(jplace, ofile, indent=2)
+
+    def filterPlacementsByMaxPendantToDistalLengthRatio(self, max_pendant_ratio: float,
+                                                        outfile: str = None) -> None:
+        """
+        Filter placements by maximum pendant length
+        """
+        if outfile is None:
+            base, ext = os.path.splitext(self._path_to_jplace)
+            outfile = f'{base}_max_pendant_distal_ratio_{max_pendant_ratio}{ext}'
+        jplace = self.getJSONobject()
+
+        filtered_placement_objs= []
+        for placement_object in jplace['placements']:
+            filtered_placements = []
+            for placement in placement_object['p']:
+                edge_num, likelihood, lwr, distal_length, pendant_length = placement
+                if pendant_length / distal_length <= max_pendant_ratio:
+                    filtered_placements.append(placement)
+            if filtered_placements:
+                placement_object['p'] = filtered_placements
+                filtered_placement_objs.append(placement_object)
+        jplace['placements'] = filtered_placement_objs
+        
+        with open(outfile, 'w') as ofile:
+            json.dump(jplace, ofile, indent=2)
