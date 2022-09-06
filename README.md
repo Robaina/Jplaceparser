@@ -1,9 +1,10 @@
-# JplaceParser
-
-[![DOI](https://zenodo.org/badge/428328886.svg)](https://zenodo.org/badge/latestdoi/428328886)
+![logo](assets/logo.png)
 
 Python tools to parse and manipulate [JPlace files](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0031009), the format of [Evolutionary Placement](https://arxiv.org/abs/0911.2852) results.
 
+[![DOI](https://zenodo.org/badge/428328886.svg)](https://zenodo.org/badge/latestdoi/428328886)
+
+<br>
 
 JplaceParser allows not only reading Jplace files as python dictionaries but also manipulating field values and exporting back to jplace files. It contains a number of filters to remove placements that do not satisfy quality criteria. Currently, placements can be filtered by three criteria involving the [pendant and distal](https://github.com/lczech/gappa/wiki/Subcommand:-assign#automatic-ratio-example) placement length as well as the phylogenetic tree diameter:
 
