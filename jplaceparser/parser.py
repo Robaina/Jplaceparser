@@ -174,6 +174,30 @@ class JplaceParser():
         self._tree_obj.root_with_outgroup(root)
         return max_distance
 
+    def filterPlacementsByMinimumLWR(self, minimum_lwr: float, outfile: str = None) -> None:
+        """
+        Filter placements by minimum LWR (from 0 to 1)
+        """
+        if outfile is None:
+            base, ext = os.path.splitext(self._path_to_jplace)
+            outfile = f'{base}_min_lwr_{minimum_lwr}{ext}'
+        print(f'Filtering placements by minimum LWR: {minimum_lwr}')
+        jplace = self.getJSONobject()
+
+        filtered_placement_objs= []
+        for placement_object in jplace['placements']:
+            filtered_placements = []
+            for placement in placement_object['p']:
+                edge_num, likelihood, lwr, distal_length, pendant_length = placement
+                if lwr >= minimum_lwr:
+                    filtered_placements.append(placement)
+            if filtered_placements:
+                placement_object['p'] = filtered_placements
+                filtered_placement_objs.append(placement_object)
+        jplace['placements'] = filtered_placement_objs
+        with open(outfile, 'w') as ofile:
+            json.dump(jplace, ofile, indent=2)
+
     def filterByMaxPendantToTreeDiameterRatio(self, max_pendant_ratio: float) -> JplaceParser:
         """
         Filter placements by maximum pendant length
