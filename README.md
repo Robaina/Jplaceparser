@@ -1,6 +1,6 @@
 ![logo](assets/logo.png)
 
-Python tools to parse and manipulate [JPlace files](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0031009), the format of [Evolutionary Placement](https://arxiv.org/abs/0911.2852) results.
+a Python tool to parse and manipulate [JPlace files](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0031009), the format of [Evolutionary Placement](https://arxiv.org/abs/0911.2852) results.
 
 [![DOI](https://zenodo.org/badge/428328886.svg)](https://zenodo.org/badge/latestdoi/428328886)
 
@@ -11,6 +11,7 @@ JplaceParser allows not only reading Jplace files as python dictionaries but als
 * Filter by maximum pendant length
 * Filter by maximum pendant to distal length ratio
 * Filter by maximum pendant to tree diameter ratio
+* Filter my minimum LWR
 
 This is an ongoing project!
 
@@ -23,63 +24,13 @@ or
 
    In terminal navigate to directory and enter: ```python setup.py install```
 
+## Usage
 
-```python
-from jplaceparser import JplaceParser
+You can find a jupyter notebook with usage examples [here](examples/examples.ipynb).
 
+## Citation
 
-jplace = JplaceParser.fromJplaceFile("examples/example.jplace")
-jplace
-```
+If you use this software, please cite it as below:
 
-
-
-
-
-<table>
-    <tr>
-        <td><strong>Number of Placements</strong></td><td>19</td>
-    </tr><tr>
-        <td><strong>Fields</strong></td><td>edge_num, likelihood, like_weight_ratio, distal_length, pendant_length</td>
-    </tr><tr>
-        <td><strong>JplaceParser version</strong></td><td>0.0.1</td>
-    </tr><tr>
-        <td><strong>Author</strong></td><td>Semidán Robaina Estévez, 2022</td>
-    </tr>
-</table>
-
-
-
-
-
-```python
-filtered_jplace = jplace.filterByMaxPendantToTreeDiameterRatio(
-    max_pendant_ratio=0.001
-)
-
-filtered_jplace.writeToFile("examples/filtered_example.jplace")
-
-filtered_jplace
-```
-
-    Filtering placements for tree diameter: 4.519636416
-
-
-
-
-
-
-<table>
-    <tr>
-        <td><strong>Number of Placements</strong></td><td>9</td>
-    </tr><tr>
-        <td><strong>Fields</strong></td><td>edge_num, likelihood, like_weight_ratio, distal_length, pendant_length</td>
-    </tr><tr>
-        <td><strong>JplaceParser version</strong></td><td>0.0.1</td>
-    </tr><tr>
-        <td><strong>Author</strong></td><td>Semidán Robaina Estévez, 2022</td>
-    </tr>
-</table>
-
-
+Robaina-Estévez, S. (2022). JPLACEparser: a Python tool to parse and manipulate JPlace files (Version 0.0.1)[Computer software]. https://doi.org/10.5281/zenodo.7031582.
 
