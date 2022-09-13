@@ -2,6 +2,10 @@
 
 a Python tool to parse and manipulate [JPlace files](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0031009), the format of [Evolutionary Placement](https://arxiv.org/abs/0911.2852) results.
 
+![PyPI](https://img.shields.io/pypi/v/jplaceparser)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/Robaina/Jplaceparser)
+[![GitHub license](https://img.shields.io/github/license/Robaina/Jplaceparser)](https://github.com/Robaina/Jplaceparser/blob/master/LICENSE)
+![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4)
 [![DOI](https://zenodo.org/badge/428328886.svg)](https://zenodo.org/badge/latestdoi/428328886)
 
 <br>
