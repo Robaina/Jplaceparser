@@ -10,6 +10,8 @@ a Python tool to parse and manipulate [JPlace files](https://journals.plos.org/p
 
 <br>
 
+## What is JPLACEparser?
+
 JplaceParser allows not only reading Jplace files as python dictionaries but also manipulating field values and exporting back to jplace files. It contains a number of filters to remove placements that do not satisfy quality criteria. Currently, placements can be filtered by three criteria involving the [pendant and distal](https://github.com/lczech/gappa/wiki/Subcommand:-assign#automatic-ratio-example) placement length as well as the phylogenetic tree diameter:
 
 * Filter by maximum pendant length
@@ -20,6 +22,7 @@ JplaceParser allows not only reading Jplace files as python dictionaries but als
 This is an ongoing project!
 
 ## Installation
+
 1. ```pip install jplaceparser```
 
 or
